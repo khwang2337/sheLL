@@ -6,12 +6,12 @@
 #include <fcntl.h>
 #include <string.h>
 
-void runP() {
-    char str[20];
+void exec() {
+  /* char str[20];
     char* line = str;
     fgets(line,20,stdin);
     *strchr(line, '\n') = 0; 
-    int i = 0;
+    int i = 0; */
     char *command[20];//array of strings
     while ((command[i] = strsep(&line, " "))) i++;
     printf("%d\n", execvp(command[0], command));
