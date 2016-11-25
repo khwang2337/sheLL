@@ -6,5 +6,8 @@
 #include <fcntl.h>
 #include <string.h>
 
-void parse(char * line){
+void parse (char * line) {
+    
+    
+}
   

@@ -6,9 +6,9 @@
 #include <fcntl.h>
 #include <string.h>
 
-int main(){
-  while(1){
-    printf("enter command: ");
+int main() {
+  while (1){
+    printf("sheLL $ ");
     char str[100] = "";
     char *line = str;
     fgets(line,sizeof(line,stdin));
@@ -16,3 +16,4 @@ int main(){
     parse(line);
   }
   return 0;
+}

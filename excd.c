@@ -16,4 +16,6 @@ void exec() {
     while ((command[i] = strsep(&line, " "))) i++;
     printf("%d\n", execvp(command[0], command));
     return 0;
+    
+    
 }
