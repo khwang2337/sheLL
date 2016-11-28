@@ -2,17 +2,17 @@
 
 int main() {
   int clear; //define int used in clearing
-  char str[100] = ""; //define string
+  char str[C_SIZE] = ""; //define string
   char *line = str; //define pointer
   
   while (1738) { //run indefinitely
-    getcwd(str, 100); //get path
+    getcwd(str, C_SIZE); //get path
     printf("\nsheLL %s $ ", str); //print sheLL 
     
-    if ( fgets(line, 100, stdin) == 0 ) printf("Error: %s", strerror(errno)); //takes input from stdin
+    if ( fgets(line, C_SIZE, stdin) == 0 ) printf("Error: %s", strerror(errno)); //takes input from stdin
 
     if ( line[strlen(line) - 1] != '\n' ) { //checks for out of bounds
-      printf("Error: Out of bounds; character limit is 99\n"); 
+      printf("Error: Out of bounds; character limit is %d\n", C_SIZE - 1); 
       while ( (clear = getchar()) != '\n' && clear != EOF); //clears stdin
     }
     else {

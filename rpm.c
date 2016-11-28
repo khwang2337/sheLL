@@ -7,10 +7,11 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
+#define C_SIZE 100
 
 void parse(char * line) {
     int i = 0;
-    char* command[100];
+    char* command[C_SIZE];
     
     while (command[i] = strsep(&line, " ")) i++;
 
