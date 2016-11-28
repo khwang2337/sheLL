@@ -8,36 +8,32 @@
 #include <errno.h>
 #include <sys/wait.h>
 
-// void exec(
-
-void parse(char* line){
+void parse(char* line) {
     int i = 0;
     char* command[100];
-    while (line){
+    
+    while (line) {
         command [i] = strsep(&line, " ");
         i++;
     }
     command[i] = NULL;
 
-    if (!strcmp(command[0],"cd")){
-      chdir(command[1]);
+    if (! strcmp(command[0],"cd") ) {
+      if (chdir(command[1]) == -1) printf("Error: %s", strerror(errno));
     }
-    else if (!strcmp(command[0],"exit")){
-      exit(0);
-    }
-    else{
+    else if (! strcmp(command[0],"exit") ) exit(0);
+    else {
       int pid = fork();
-      if (pid){
+      
+      if (pid) {
         wait(0);
       }
-      else{
-        int r = execvp(command[0], command);
-        if(r == -1){
-          printf("error\n");
-          exit(0);
-
+      else {
+        if ( execvp(command[0], command) == -1) {
+          if (errno != 2) printf("Error: %s", strerror(errno));
+          else printf("Error: Not a command");
         }
-        printf("%d\n", r);
+        exit(0);
       }
     }
 }

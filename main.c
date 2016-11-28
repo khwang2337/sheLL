@@ -1,18 +1,23 @@
 #include "rpm.c"
 
 int main() {
-  while (1){
-    printf("sheLL $ ");
-    char str[100] = "";
-    char *line = str;
-    //If invalid input:
-    if (fgets(line, 100, stdin) == 0)
-        printf("Error: %s\n", strerror(errno));
-    else if (line[strlen(line) - 1] != '\n')
-        printf("Error: out of bounds!\nChar limit: 99");
+  int clear; //define int used in clearing
+  char str[100] = ""; //define string
+  char *line = str; //define pointer
+  
+  while (1738) { //run indefinitely
+    getcwd(str, 100); //get path
+    printf("\nsheLL %s $ ", str); //print sheLL 
+    
+    if ( fgets(line, 100, stdin) == 0 ) printf("Error: %s", strerror(errno)); //takes input from stdin
+
+    if ( line[strlen(line) - 1] != '\n' ) { //checks for out of bounds
+      printf("Error: Out of bounds; character limit is 99\n"); 
+      while ( (clear = getchar()) != '\n' && clear != EOF); //clears stdin
+    }
     else {
-        line[strlen(line)-1] = 0;//replaces \n
-        parse(line);
+        line[ strlen(line)-1 ] = 0; //replaces newline
+        parse(line); //parses input
     }
   }
   return 0;
