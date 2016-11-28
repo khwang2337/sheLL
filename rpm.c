@@ -8,15 +8,11 @@
 #include <errno.h>
 #include <sys/wait.h>
 
-void parse(char* line) {
+void parse(char * line) {
     int i = 0;
     char* command[100];
     
-    while (line) {
-        command [i] = strsep(&line, " ");
-        i++;
-    }
-    command[i] = NULL;
+    while (command[i] = strsep(&line, " ")) i++;
 
     if (! strcmp(command[0],"cd") ) {
       if (chdir(command[1]) == -1) printf("Error: %s", strerror(errno));
