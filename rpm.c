@@ -23,7 +23,7 @@ void parse(char* line){
       chdir(command[1]);
     }
     else if (!strcmp(command[0],"exit")){
-      exit(1);
+      exit(0);
     }
     else{
       int pid = fork();
