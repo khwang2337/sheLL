@@ -9,11 +9,11 @@
 #include <sys/wait.h>
 #define C_SIZE 100
 
-void parse(char * line) {
+void exec(char * line) {
     int i = 0;
     char* command[C_SIZE];
     
-    while (command[i] = strsep(&line, " ,")) i++;
+    while (command[i] = strsep(&line, " ")) i++;
     printf("%s\n", command[0]);
     if (! strcmp(command[0],"cd") ) {
       if (chdir(command[1]) == -1) printf("Error: %s", strerror(errno));
@@ -34,20 +34,20 @@ void parse(char * line) {
       }
     }
 }
-/*
+
 void parse(char * line) {
   char * del[C_SIZE];
   int n = 0;
   int i = 0;
-  char * command[C_SIZE];
+  char * cmd[C_SIZE];
   
   while ( line[i] ) {
-    if (line[i] == '<' || line[i] == '<' || line[i] == '<') del[n++] = line[i];
+    if (line[i] == '<' || line[i] == '>' || line[i] == '|') del[n++] = line[i];
     i++;
   }
   
   i = 0;
-  while (command[i] = strsep(&line, "><|")) i++;
+  while (cmd[i] = strsep(&line, "><|")) i++;
 }
-*/
+
   
