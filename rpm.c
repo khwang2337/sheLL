@@ -10,27 +10,28 @@
 #define C_SIZE 100
 
 void exec(char * line) {
-    int i = 0;
+    int pid, i = 0;
     char* command[C_SIZE];
     
     while (command[i] = strsep(&line, " ")) i++;
-    printf("%s\n", command[0]);
+    //printf("%s\n", command[0]);
     if (! strcmp(command[0],"cd") ) {
       if (chdir(command[1]) == -1) printf("Error: %s", strerror(errno));
     }
     else if (! strcmp(command[0],"exit") ) exit(0);
     else {
-      int pid = fork();
-      
-      if (pid) {
-        wait(0);
-      }
+      if ( (pid = fork()) == -1) printf("Error: %s", strerror(errno));
       else {
-        if ( execvp(command[0], command) == -1) {
-          if (errno != 2) printf("Error: %s", strerror(errno));
-          else printf("Error: Not a command");
+        if (pid) {
+          wait(0);
         }
-        exit(0);
+        else {
+          if ( execvp(command[0], command) == -1) {
+            if (errno != 2) printf("Error: %s", strerror(errno));
+            else printf("Error: Not a command");
+          }
+          exit(0);
+        }
       }
     }
 }
@@ -42,12 +43,19 @@ void parse(char * line) {
   char * cmd[C_SIZE];
   
   while ( line[i] ) {
-    if (line[i] == '<' || line[i] == '>' || line[i] == '|') del[n++] = line[i];
+    if (line[i] == '<' || line[i] == '>' || line[i] == '|' || line[i] == ';') del[n++] = line[i];
     i++;
   }
   
   i = 0;
-  while (cmd[i] = strsep(&line, "><|")) i++;
+  while (cmd[i] = strsep(&line, "><|;")) i++;
+  printf("%s|%s\n", cmd[0], cmd[1]);
+  int _i = 0;
+  int _n = 0;
+  while (!(_i==i)) {
+    if (del[_n++] == ';') exec(cmd[_i]);
+    _i++;
+  }
+  exec(cmd[_i]);
 }
-
   
