@@ -85,18 +85,23 @@ void aredirect(char * line, char *b){
       }
       else {
         int fd = open(b, O_RDONLY, 0644);
-        int stdout = dup(1);
-        dup2(fd,1);
+        if(fd==-1){
+          printf("error: no such file");
+          exit(0);
+        }
+        int stdin = dup(0);
+        dup2(fd,0);
         if ( execvp(command[0], command) == -1) {
           if (errno != 2) printf("Error: %s", strerror(errno));
           else printf("Error: Not a command");
         }
-        dup2(stdout,1);
+        dup2(stdin,0);
         exit(0);
       }
     }
   }
 }
+
 
 void parse(char * line) {
   char del = 0;
@@ -124,6 +129,18 @@ void parse(char * line) {
 
   if (del == '>'){
     redirect(a,b);
+    return;
+  }
+
+  if (del == '<'){
+    aredirect(a,b);
+    return;
+  }
+
+  if (del == '|'){
+    redirect(a, ".temp");
+    aredirect(b, ".temp");
+    execlp("rm","rm",".temp",NULL);
     return;
   }
 }
