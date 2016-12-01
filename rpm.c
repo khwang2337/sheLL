@@ -12,7 +12,7 @@
 void exec(char * line) {
     int pid, i = 0;
     char* command[C_SIZE];
-    
+
     while (command[i] = strsep(&line, " ")) i++;
     //printf("%s\n", command[0]);
     if (! strcmp(command[0],"cd") ) {
@@ -36,26 +36,94 @@ void exec(char * line) {
     }
 }
 
+void redirect(char * line, char *b){
+  int pid, i = 0;
+  char* command[C_SIZE];
+
+  while (command[i] = strsep(&line, " ")) i++;
+  //printf("%s\n", command[0]);
+  if (! strcmp(command[0],"cd") ) {
+    if (chdir(command[1]) == -1) printf("Error: %s", strerror(errno));
+  }
+  else if (! strcmp(command[0],"exit") ) exit(0);
+  else {
+    if ( (pid = fork()) == -1) printf("Error: %s", strerror(errno));
+    else {
+      if (pid) {
+        wait(0);
+      }
+      else {
+        int fd = open(b, O_CREAT|O_RDWR|O_TRUNC, 0644);
+        int stdout = dup(1);
+        dup2(fd,1);
+        if ( execvp(command[0], command) == -1) {
+          if (errno != 2) printf("Error: %s", strerror(errno));
+          else printf("Error: Not a command");
+        }
+        dup2(stdout,1);
+        exit(0);
+      }
+    }
+  }
+}
+
+void aredirect(char * line, char *b){
+  int pid, i = 0;
+  char* command[C_SIZE];
+
+  while (command[i] = strsep(&line, " ")) i++;
+  //printf("%s\n", command[0]);
+  if (! strcmp(command[0],"cd") ) {
+    if (chdir(command[1]) == -1) printf("Error: %s", strerror(errno));
+  }
+  else if (! strcmp(command[0],"exit") ) exit(0);
+  else {
+    if ( (pid = fork()) == -1) printf("Error: %s", strerror(errno));
+    else {
+      if (pid) {
+        wait(0);
+      }
+      else {
+        int fd = open(b, O_RDONLY, 0644);
+        int stdout = dup(1);
+        dup2(fd,1);
+        if ( execvp(command[0], command) == -1) {
+          if (errno != 2) printf("Error: %s", strerror(errno));
+          else printf("Error: Not a command");
+        }
+        dup2(stdout,1);
+        exit(0);
+      }
+    }
+  }
+}
+
 void parse(char * line) {
-  char * del[C_SIZE];
-  int n = 0;
+  char del = 0;
   int i = 0;
-  char * cmd[C_SIZE];
-  
+  char * a;
+  char * b;
   while ( line[i] ) {
-    if (line[i] == '<' || line[i] == '>' || line[i] == '|' || line[i] == ';') del[n++] = line[i];
+    if (line[i] == '<' || line[i] == '>' || line[i] == '|' || line[i] == ';') del = line[i];
     i++;
   }
-  
-  i = 0;
-  while (cmd[i] = strsep(&line, "><|;")) i++;
-  printf("%s|%s\n", cmd[0], cmd[1]);
-  int _i = 0;
-  int _n = 0;
-  while (!(_i==i)) {
-    if (del[_n++] == ';') exec(cmd[_i]);
-    _i++;
+
+  if (!del){
+    exec(line);
+    return;
   }
-  exec(cmd[_i]);
+
+  a = strsep(&line, "><|;");
+  b = strsep(&line, "><|;");
+
+  if (del == ';'){
+    exec(a);
+    exec(b);
+    return;
+  }
+
+  if (del == '>'){
+    redirect(a,b);
+    return;
+  }
 }
-  
