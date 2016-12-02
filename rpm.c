@@ -53,20 +53,40 @@ void aredirect(char * command[], char *b){
   dup2(stdin,0);
 }
 
+void piper(char * command[], char * b) {
+  int pid, i = 0;
+  char * command2[C_SIZE];
+  while (command2[i] = strsep(&b, " ")) i++;
+
+  i = 2;
+  while (i--) {
+    pid = fork();
+    if (pid) {
+      wait(0);
+    }
+    else {
+      if (i) redirect(command,".temp");
+      else aredirect(command2,".temp");
+      exit(0);
+    }
+  }
+  execlp("rm", "rm", ".temp", NULL);
+}
+
 void exec(char * a, char * b, char del) {
     int pid, i = 0;
-    char* Acommand[C_SIZE]; 
+    char* command[C_SIZE]; 
     
     printf("exec a:%s\n",a);
     printf("exec b:%s\n",b);
     printf("del:%c\n", del);
     
-    while (Acommand[i] = strsep(&a, " ")) i++;
-    printf("%s\n", Acommand[0]);
-    if (! strcmp(Acommand[0],"cd") ) {
-      if (chdir(Acommand[1]) == -1) printf("Error: %s", strerror(errno));
+    while (command[i] = strsep(&a, " ")) i++;
+    printf("%s\n", command[0]);
+    if (! strcmp(command[0],"cd") ) {
+      if (chdir(command[1]) == -1) printf("Error: %s", strerror(errno));
     }
-    else if (! strcmp(Acommand[0],"exit") ) exit(0);
+    else if (! strcmp(command[0],"exit") ) exit(0);
     else {
       if ( (pid = fork()) == -1) printf("Error: %s", strerror(errno));
       else {
@@ -75,35 +95,15 @@ void exec(char * a, char * b, char del) {
         }
         else {
           if (! del) {
-            if ( execvp(Acommand[0], Acommand) == -1) {
+            if ( execvp(command[0], command) == -1) {
               if (errno != 2) printf("Error: %s", strerror(errno));
               else printf("Error: Not a command");
             }
           }
           else {
-            if (del == '>') redirect(Acommand,b);
-            if (del == '<') aredirect(Acommand,b);
-            if (del == '|') {
-              int pid2;
-              i = 0;
-              char * Bcommand[C_SIZE];
-              while (Bcommand[i] = strsep(&b, " ")) i++;
-              
-              i = 2;
-              while (i--) {
-                pid2 = fork();
-                if (pid2) {
-                  wait(0);
-                }
-                else {
-                  if (i == 1) redirect(Acommand,".temp");
-                  else aredirect(Bcommand,".temp");
-                  exit(0);
-                }
-              }
-              
-              execlp("rm", "rm", ".temp", NULL);
-            }
+            if (del == '>') redirect(command,b);
+            if (del == '<') aredirect(command,b);
+            if (del == '|') piper(command,b);
           }
           exit(0);
         }
@@ -133,29 +133,5 @@ void parse(char * line) {
   printf("parse a:%s\n",a);
   printf("parse b:%s\n",b);
   
-/*  
-  if (del == '|') {
-    printf("del %c\n", del);
-    char* command[C_SIZE]; 
-    
-    i = 0;
-    while (command[i] = strsep(&a, " ")) i++;
-    
-    int pid = fork();
-    if (pid) wait(0);
-    else {
-      redirect(command, ".temp");
-      
-      i = 0;
-      while (command[i] = strsep(&b, " ")) i++;
-      
-      aredirect(command, ".temp");
-      execlp("rm","rm",".temp",NULL);
-      exit(0);
-    }
-    
-    return;
-  }
-  */
   exec(a,b,del);
 }
