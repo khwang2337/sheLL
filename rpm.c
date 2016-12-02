@@ -148,9 +148,9 @@ void exec(char * a, char * b, char del) {
             if (del == '>') redirect(command,b);
             if (del == '<') aredirect(command,b);
             if (del == '|') piper(command,b);
-          /*if (del == '>&') inerredirect(Acommand,b);
-            if (del == '>>') appendout(Acommand,b);
-            if (del == '>>&') appendouterr(Acommand,b);*/
+            if (del == 36) appendout(command,b);
+            if (del == 64) inerredirect(command,b);
+            if (del == 101) appendouterr(command,b);
           }
           exit(0);
         }
@@ -169,14 +169,36 @@ void parse(char * line) {
     parse(line);
     return;
   }
-  //  char dels[6] = {'>','<','|','>&','>>','>&'};
-  while ( line[i] && ! del) {
-    if (line[i] == '<' || line[i] == '>' || line[i] == '|') del = line[i];
-    i++;
+  //  char dels[6] = {'>','<','|','>&','>>','>>&'};
+  if (strstr(line, "&>>")) {
+    del = 101;
+    a = trimspace(strsep(&line,"&"));
+    strsep(&line, ">");
+    strsep(&line, ">");
+    b = trimspace(line);
+  }
+  else if (strstr(line, "&>")) {
+    del = 64;
+    a = trimspace(strsep(&line,"&"));
+    strsep(&line, ">");
+    b = trimspace(line);
+  }
+  else if (strstr(line, ">>")) {
+    del = 36;
+    a = trimspace(strsep(&line,">"));
+    strsep(&line, ">");
+    b = trimspace(line);
+  }
+  else {
+    while ( line[i] && ! del) {
+      if (line[i] == '<' || line[i] == '>' || line[i] == '|') del = line[i];
+      i++;
+    }
+  
+    a = trimspace(strsep(&line, "><|"));
+    b = trimspace(line);
   }
   
-  a = trimspace(strsep(&line, "><|"));
-  b = trimspace(line);
   printf("parse a:%s\n",a);
   printf("parse b:%s\n",b);
   
