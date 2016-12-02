@@ -9,10 +9,31 @@
 #include <sys/wait.h>
 #define C_SIZE 100
 
+char * trimspace(char * a) {
+  if (a) {
+    int count = 0;
+    char * ret = 0;
+    while (a[count] == 32){
+      count++;
+    }
+    ret = a+count;
+    count = strlen(a)-1;
+    while (a[count] == 32){
+      count--;
+    }
+    a[count+1]=0;
+    return ret;
+  }
+  else return a;
+}
+
 void exec(char * a, char * b, char del) {
     int pid, i = 0;
     char* command[C_SIZE];
-
+    
+    printf("exec a:%s\n",a);
+    printf("exec b:%s\n",b);
+    
     while (command[i] = strsep(&a, " ")) i++;
     //printf("%s\n", command[0]);
     if (! strcmp(command[0],"cd") ) {
@@ -139,7 +160,7 @@ void aredirect(char * line, char *b){
 
 
 void parse(char * line) {
-  printf("parse: %s\n", line);
+  printf("parse:%s\n", line);
   char del = 0;
   char tru = 0;
   int i = 0;
@@ -158,10 +179,10 @@ void parse(char * line) {
     i++;
   }
   
-  a = strsep(&line, "><|");
-  b = line;
-  printf("a:%s\n",a);
-  printf("b:%s\n",b);
+  a = trimspace(strsep(&line, "><|"));
+  b = trimspace(line);
+  printf("parse a:%s\n",a);
+  printf("parse b:%s\n",b);
   /*
   if (!del){
     exec(line,NULL);
