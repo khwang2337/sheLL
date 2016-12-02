@@ -26,8 +26,11 @@ char * trimspace(char * a) {
   else return a;
 }
 
-void redirect(char * command[], char *b){
-  int fd = open(b, O_CREAT|O_RDWR|O_TRUNC, 0644);
+//> and >> redirect stdout
+void redirect(char * command[], char *b, char app){
+  int fd;
+  if (app) fd = open(b, O_CREAT|O_RDWR|O_APPEND, 0644);
+  else fd = open(b, O_CREAT|O_RDWR|O_TRUNC, 0644);
   int stdout = dup(1);
   dup2(fd,1);
   if ( execvp(command[0], command) == -1) {
@@ -37,6 +40,7 @@ void redirect(char * command[], char *b){
   dup2(stdout,1);
 }
 
+//< redirect in
 void aredirect(char * command[], char *b){
   int fd = open(b, O_RDONLY, 0644);
   if( fd == -1){
@@ -52,6 +56,7 @@ void aredirect(char * command[], char *b){
   dup2(stdin,0);
 }
 
+//| pipe
 void piper(char * command[], char * b) {
   int pid, i = 0;
   char * command2[C_SIZE];
@@ -64,7 +69,7 @@ void piper(char * command[], char * b) {
       wait(0);
     }
     else {
-      if (i) redirect(command,".temp");
+      if (i) redirect(command,".temp",0);
       else aredirect(command2,".temp");
       exit(0);
     }
@@ -72,61 +77,47 @@ void piper(char * command[], char * b) {
   execlp("rm", "rm", ".temp", NULL);
 }
 
-//>&
-//Redirect standard output and standard error
-void inerredirect(char * command[], char *b){
-    int fd = open(b, O_CREAT|O_RDWR|O_TRUNC, 0644);
-    int stdout = dup(1);
-    int stderr = dup(2);
-    dup2(fd,1);
-    dup2(fd,2);
-    if ( execvp(command[0], command) == -1) {
-        if (errno != 2) printf("Error: %s", strerror(errno));
-        else printf("Error: Not a command");
-    }
-    dup2(stdout,1);
-    dup2(stderr,1);
+//&> and &>>  redirect stdout and stderr
+void inerredirect(char * command[], char *b, char app){
+  int fd;
+  if (app) fd = open(b, O_CREAT|O_RDWR|O_APPEND, 0644);
+  else fd = open(b, O_CREAT|O_RDWR|O_TRUNC, 0644);
+  int stdout = dup(1);
+  int stderr = dup(2);
+  dup2(fd,1);
+  dup2(fd,2);
+  if ( execvp(command[0], command) == -1) {
+      if (errno != 2) printf("Error: %s", strerror(errno));
+      else printf("Error: Not a command");
+  }
+  dup2(stdout,1);
+  dup2(stderr,1);
 }
 
-//>>
-//Append standard output
-void appendout(char * command[], char *b){
-    int fd = open(b, O_CREAT|O_RDWR|O_APPEND, 0644);
-    int stdout = dup(1);
-    dup2(fd,1);
-    if ( execvp(command[0], command) == -1) {
-        if (errno != 2) printf("Error: %s", strerror(errno));
-        else printf("Error: Not a command");
-    }
-    dup2(stdout,1);
-}
-
-//>>&
-//Append standard output and standard error
-void appendouterr(char * command[], char *b){
-    int fd = open(b, O_CREAT|O_RDWR|O_APPEND, 0644);
-    int stdout = dup(1);
-    int stderr = dup(2);
-    dup2(fd,1);
-    dup2(fd,2);
-    if ( execvp(command[0], command) == -1) {
-        if (errno != 2) printf("Error: %s", strerror(errno));
-        else printf("Error: Not a command");
-    }
-    dup2(stdout,1);
-    dup2(stderr,1);
+//2> and 2>> redirect stderr
+void erredirect(char * command[], char *b, char app) {
+  int fd;
+  if (app) fd = open(b, O_CREAT|O_RDWR|O_APPEND, 0644);
+  else fd = open(b, O_CREAT|O_RDWR|O_TRUNC, 0644);
+  int stderr = dup(2);
+  dup2(fd,2);
+  if ( execvp(command[0], command) == -1) {
+    if (errno != 2) printf("Error: %s", strerror(errno));
+    else printf("Error: Not a command");
+  }
+  dup2(stderr,1);
 }
 
 void exec(char * a, char * b, char del) {
     int pid, i = 0;
     char* command[C_SIZE]; 
     
-    printf("exec a:%s\n",a);
-    printf("exec b:%s\n",b);
-    printf("del:%c\n", del);
+    //printf("exec a:%s\n",a);
+    //printf("exec b:%s\n",b);
+    //printf("del:%c\n", del);
     
     while ((command[i] = strsep(&a, " "))) i++;
-    printf("%s\n", command[0]);
+    //printf("%s\n", command[0]);
     if (! strcmp(command[0],"cd") ) {
       if (chdir(command[1]) == -1) printf("Error: %s", strerror(errno));
     }
@@ -145,12 +136,14 @@ void exec(char * a, char * b, char del) {
             }
           }
           else {
-            if (del == '>') redirect(command,b);
-            if (del == '<') aredirect(command,b);
-            if (del == '|') piper(command,b);
-            if (del == 36) appendout(command,b);
-            if (del == 64) inerredirect(command,b);
-            if (del == 101) appendouterr(command,b);
+            if (del == '|') piper(command,b); //|
+            if (del == '<') aredirect(command,b); //<
+            if (del == '>') redirect(command,b,0); //>
+            if (del == 36) redirect(command,b,1); //>>
+            if (del == 40) erredirect(command,b,0); //2>
+            if (del == 48) erredirect(command,b,1); //2>>
+            if (del == 64) inerredirect(command,b,0); //&>
+            if (del == 101) inerredirect(command,b,1); //&>>
           }
           exit(0);
         }
@@ -159,7 +152,7 @@ void exec(char * a, char * b, char del) {
 }
 
 void parse(char * line) {
-  printf("parse:%s\n", line);
+  //printf("parse:%s\n", line);
   char del = 0, i = 0;
   char * a, * b;
   
@@ -169,25 +162,33 @@ void parse(char * line) {
     parse(line);
     return;
   }
-  //  char dels[6] = {'>','<','|','>&','>>','>>&'};
+  //  char dels[6] = {'>','<','|','>&','>>','>>&'}; 2> 2>>
   if (strstr(line, "&>>")) {
     del = 101;
     a = trimspace(strsep(&line,"&"));
     strsep(&line, ">");
     strsep(&line, ">");
-    b = trimspace(line);
   }
   else if (strstr(line, "&>")) {
     del = 64;
     a = trimspace(strsep(&line,"&"));
     strsep(&line, ">");
-    b = trimspace(line);
+  }
+  else if (strstr(line, "2>>")) {
+    del = 48;
+    a = trimspace(strsep(&line,"2"));
+    strsep(&line, ">");
+    strsep(&line, ">");
+  }
+  else if (strstr(line, "2>")) {
+    del = 40;
+    a = trimspace(strsep(&line, "2"));
+    strsep(&line, ">");
   }
   else if (strstr(line, ">>")) {
     del = 36;
     a = trimspace(strsep(&line,">"));
     strsep(&line, ">");
-    b = trimspace(line);
   }
   else {
     while ( line[i] && ! del) {
@@ -196,11 +197,13 @@ void parse(char * line) {
     }
   
     a = trimspace(strsep(&line, "><|"));
-    b = trimspace(line);
   }
   
-  printf("parse a:%s\n",a);
-  printf("parse b:%s\n",b);
+  b = trimspace(line);
+  
+  //printf("parse a:%s\n",a);
+  //printf("parse b:%s\n",b);
+  //printf("del: %d\n",del);
   
   exec(a,b,del);
 }
