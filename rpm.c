@@ -55,7 +55,7 @@ void aredirect(char * command[], char *b){
 void piper(char * command[], char * b) {
   int pid, i = 0;
   char * command2[C_SIZE];
-  while (command2[i] = strsep(&b, " ")) i++;
+  while ((command2[i] = strsep(&b, " "))) i++;
 
   i = 2;
   while (i--) {
@@ -72,6 +72,51 @@ void piper(char * command[], char * b) {
   execlp("rm", "rm", ".temp", NULL);
 }
 
+//>&
+//Redirect standard output and standard error
+void inerredirect(char * command[], char *b){
+    int fd = open(b, O_CREAT|O_RDWR|O_TRUNC, 0644);
+    int stdout = dup(1);
+    int stderr = dup(2);
+    dup2(fd,1);
+    dup2(fd,2);
+    if ( execvp(command[0], command) == -1) {
+        if (errno != 2) printf("Error: %s", strerror(errno));
+        else printf("Error: Not a command");
+    }
+    dup2(stdout,1);
+    dup2(stderr,1);
+}
+
+//>>
+//Append standard output
+void appendout(char * command[], char *b){
+    int fd = open(b, O_CREAT|O_RDWR|O_APPEND, 0644);
+    int stdout = dup(1);
+    dup2(fd,1);
+    if ( execvp(command[0], command) == -1) {
+        if (errno != 2) printf("Error: %s", strerror(errno));
+        else printf("Error: Not a command");
+    }
+    dup2(stdout,1);
+}
+
+//>>&
+//Append standard output and standard error
+void appendouterr(char * command[], char *b){
+    int fd = open(b, O_CREAT|O_RDWR|O_APPEND, 0644);
+    int stdout = dup(1);
+    int stderr = dup(2);
+    dup2(fd,1);
+    dup2(fd,2);
+    if ( execvp(command[0], command) == -1) {
+        if (errno != 2) printf("Error: %s", strerror(errno));
+        else printf("Error: Not a command");
+    }
+    dup2(stdout,1);
+    dup2(stderr,1);
+}
+
 void exec(char * a, char * b, char del) {
     int pid, i = 0;
     char* command[C_SIZE]; 
@@ -80,7 +125,7 @@ void exec(char * a, char * b, char del) {
     printf("exec b:%s\n",b);
     printf("del:%c\n", del);
     
-    while (command[i] = strsep(&a, " ")) i++;
+    while ((command[i] = strsep(&a, " "))) i++;
     printf("%s\n", command[0]);
     if (! strcmp(command[0],"cd") ) {
       if (chdir(command[1]) == -1) printf("Error: %s", strerror(errno));
@@ -103,6 +148,9 @@ void exec(char * a, char * b, char del) {
             if (del == '>') redirect(command,b);
             if (del == '<') aredirect(command,b);
             if (del == '|') piper(command,b);
+          /*if (del == '>&') inerredirect(Acommand,b);
+            if (del == '>>') appendout(Acommand,b);
+            if (del == '>>&') appendouterr(Acommand,b);*/
           }
           exit(0);
         }
@@ -121,7 +169,7 @@ void parse(char * line) {
     parse(line);
     return;
   }
-  
+  //  char dels[6] = {'>','<','|','>&','>>','>&'};
   while ( line[i] && ! del) {
     if (line[i] == '<' || line[i] == '>' || line[i] == '|') del = line[i];
     i++;
