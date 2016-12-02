@@ -112,12 +112,8 @@ void exec(char * a, char * b, char del) {
     int pid, i = 0;
     char* command[C_SIZE]; 
     
-    //printf("exec a:%s\n",a);
-    //printf("exec b:%s\n",b);
-    //printf("del:%c\n", del);
-    
     while ((command[i] = strsep(&a, " "))) i++;
-    //printf("%s\n", command[0]);
+
     if (! strcmp(command[0],"cd") ) {
       if (chdir(command[1]) == -1) printf("Error: %s", strerror(errno));
     }
@@ -152,7 +148,6 @@ void exec(char * a, char * b, char del) {
 }
 
 void parse(char * line) {
-  //printf("parse:%s\n", line);
   char del = 0, i = 0;
   char * a, * b;
   
@@ -162,7 +157,7 @@ void parse(char * line) {
     parse(line);
     return;
   }
-  //  char dels[6] = {'>','<','|','>&','>>','>>&'}; 2> 2>>
+
   if (strstr(line, "&>>")) {
     del = 101;
     a = trimspace(strsep(&line,"&"));
@@ -200,10 +195,6 @@ void parse(char * line) {
   }
   
   b = trimspace(line);
-  
-  //printf("parse a:%s\n",a);
-  //printf("parse b:%s\n",b);
-  //printf("del: %d\n",del);
   
   exec(a,b,del);
 }
